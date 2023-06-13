@@ -1,0 +1,16 @@
+name: tapp
+channels:
+  - apple
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip>=19.0
+  - typer>=0.9.0
+  - jupyterlab>=3.6.0
+  - ipywidgets>=8.0.0
+  - tensorflow-datasets=4.8.3
+  - tensorflow-deps=2.10.0
+  - pip:
+    - tensorflow-macos==2.12.0
+    - tensorflow-metal==0.8.0
+    - sentencepiece==0.1.99
