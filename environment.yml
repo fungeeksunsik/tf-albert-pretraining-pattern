@@ -1,4 +1,4 @@
-name: tapp
+name: tbpp
 channels:
   - apple
   - conda-forge
