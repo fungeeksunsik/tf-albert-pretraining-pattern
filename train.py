@@ -41,13 +41,14 @@ def postprocess_token_sequences(sequences: List[List[int]]) -> np.array:
 def apply_mlm_mask(
         inputs: np.array,
         rg: tf.random.Generator,
-) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     """
     Takes special-token(ex. bos, eos, pad) added sequences as input and returns tuple of tensors. Specifically, it
     returns following tensors consecutively to be passed into tf.data.Dataset API:
       1. mlm mask applied input tensor
       2. original input tensor
       3. float-casted boolean mask which indicates whether certain token was mlm mask
+      4. 3-dimensional attention mask where each dimension represents (batch_size, num_heads, max_length) respectively
     :param inputs: trimmed, padded input sequences(output of `postprocess_token_sequences` method)
     :param rg: random number generator initiated from random_seed
     :return: tuple of output tensors
@@ -58,8 +59,13 @@ def apply_mlm_mask(
         name="select_masked_token",
     )
     mask_type_probs = rg.uniform(inputs.shape)
+    attention_mask = tf.expand_dims(
+        input=inputs != config.SPECIAL_TOKENS["pad_token"]["id"],
+        axis=1,  # dimension corresponds to num_heads will later be broadcasted within MHA layer
+        name="generate_attention_mask",
+    )
     random_tokens = tf.cast(
-        x=rg.uniform(inputs.shape) * config.SPM_TRAINER_CONFIG["vocab_size"],
+        x=rg.uniform(inputs.shape) * config.VOCAB_SIZE,
         dtype=tf.dtypes.int32,
         name="generate_random_tokens",
     )
@@ -79,10 +85,11 @@ def apply_mlm_mask(
         masked_inputs,
         tf.constant(inputs),
         tf.cast(is_mlm_mask, tf.dtypes.float32),
+        attention_mask,
     )
 
 
-def masked_data_generator() -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+def masked_data_generator() -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:
     """
     Generator that yields batch of masked sequences at every iteration
     :return: result of `apply_mlm_mask` method
@@ -127,6 +134,11 @@ def create_masked_dataset() -> tf.data.Dataset:
                 shape=(None, config.PADDED_SEQUENCE_LENGTH),
                 dtype=tf.dtypes.float32,
                 name="sample_weights"
+            ),
+            tf.TensorSpec(
+                shape=(None, 1, config.PADDED_SEQUENCE_LENGTH),
+                dtype=tf.dtypes.float32,
+                name="attention_mask"
             ),
         ),
         name="generate_masked_token_sequences"
