@@ -6,15 +6,15 @@ import config
 from typing import List
 
 
-def preprocess_review(review: tf.Tensor) -> tf.Tensor:
+def preprocess_review(review: tf.Tensor) -> str:
     """
     Replace line break HTML tag to single space and uppercase letter to lowercase
     :param review: tf.Tensor of raw review text
-    :return: tf.Tensor of preprocessed review
+    :return: preprocessed review
     """
     x = tf.strings.regex_replace(review, "<[^>]+>", " ", replace_global=True)
     x = tf.strings.lower(x)
-    return tf.strings.strip(x)
+    return tf.strings.strip(x).numpy().decode("utf-8")
 
 
 def fetch_imdb_corpus() -> List[str]:
@@ -25,8 +25,7 @@ def fetch_imdb_corpus() -> List[str]:
     imdb_dataset = tfds.load("imdb_reviews", split="train", shuffle_files=True)
     corpus = []
     for review in imdb_dataset:
-        preprocessed_review = preprocess_review(review["text"])
-        corpus.append(preprocessed_review.numpy().decode("utf-8"))
+        corpus.append(preprocess_review(review["text"]))
     return corpus
 
 
