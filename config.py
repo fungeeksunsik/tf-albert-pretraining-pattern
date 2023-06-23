@@ -2,15 +2,16 @@
 LOCAL_DIR = "/tmp/tbpp"
 
 # BERT hyperparameters
-# reference: https://keras.io/examples/nlp/masked_language_modeling/#setup-configuration
 PADDED_SEQUENCE_LENGTH = 256
 BATCH_SIZE = 32
-LEARNING_RATE = 1e-3
-VOCAB_SIZE = 30000
+VOCAB_SIZE = 25000
 EMBED_DIM = 128
-NUM_ATTENTION_HEAD = 8
-DENSE_LAYER_DIM = 128
-NUM_LAYERS = 1
+DENSE_DIM = 512
+NUM_ATTENTION_HEADS = 8
+NUM_LAYERS = 2
+LAYER_NORM_EPS = 1e-6
+NUM_EPOCHS = 3
+SAVED_MODEL_ARCHIVE_NAME = "bert_mlm_imdb"
 
 # sentencepiece tokenizer parameters
 SPECIAL_TOKENS = {
@@ -49,3 +50,6 @@ SPM_TRAINER_CONFIG = {
     "train_extremely_large_corpus": False,
     "minloglevel": 3
 }
+
+# sentiment classifier parameters
+HIDDEN_LAYER_UNITS = 64
