@@ -26,5 +26,16 @@ def run_train():
     bert_mlm_model.save(archive_path, save_format="tf")
 
 
+@app.command("evaluate")
+def run_evaluate():
+    train_dataset = evaluate.create_train_imdb_sentiment_data()
+    test_dataset = evaluate.create_validation_imdb_sentiment_data()
+    imdb_predictor = evaluate.IMDbReviewSentimentAnalyzer("imdb_predictor")
+    imdb_predictor.compile(optimizer=tf.keras.optimizers.legacy.Adam(), metrics=["accuracy"])
+    imdb_predictor.fit(x=train_dataset, epochs=config.NUM_EPOCHS, validation_data=test_dataset)
+    archive_path = f"{config.LOCAL_DIR}/imdb_predictor"
+    imdb_predictor.save(archive_path, save_format="tf")
+
+
 if __name__ == "__main__":
     app()
